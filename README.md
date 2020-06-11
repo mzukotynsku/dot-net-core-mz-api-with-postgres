@@ -1,1 +1,1 @@
-# dot-net-core-mz-api-with-postgres
+# dot-net-core-mz-api
