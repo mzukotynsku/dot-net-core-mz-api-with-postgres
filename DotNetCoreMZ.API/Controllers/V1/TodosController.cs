@@ -1,4 +1,5 @@
-﻿using DotNetCoreMZ.API.Contracts.V1;
+﻿using AutoMapper;
+using DotNetCoreMZ.API.Contracts.V1;
 using DotNetCoreMZ.API.Contracts.V1.Requests;
 using DotNetCoreMZ.API.Contracts.V1.Responses;
 using DotNetCoreMZ.API.Domain;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DotNetCoreMZ.API.Controllers.V1
@@ -16,16 +18,20 @@ namespace DotNetCoreMZ.API.Controllers.V1
     public class TodosController : Controller
     {
         private readonly ITodoService _todoService;
+        private readonly IMapper _mapper;
 
-        public TodosController(ITodoService todoService)
+        public TodosController(ITodoService todoService, IMapper mapper)
         {
             _todoService = todoService;
+            _mapper = mapper;
         }
 
         [HttpGet(ApiRoutes.Todos.GetAll)]
         public async Task<IActionResult> GetAll()
         {
-            return Ok(await _todoService.GetTodosAsync());
+            var todos = await _todoService.GetTodosAsync();
+
+            return Ok(_mapper.Map<List<TodoResponse>>(todos));
         }
 
         [HttpGet(ApiRoutes.Todos.GetById)]
@@ -36,7 +42,7 @@ namespace DotNetCoreMZ.API.Controllers.V1
             if (todo == null)
                 return NotFound();
 
-            return Ok(todo);
+            return Ok(_mapper.Map<TodoResponse>(todo));
         }
 
         [HttpPut(ApiRoutes.Todos.Update)]
@@ -94,7 +100,7 @@ namespace DotNetCoreMZ.API.Controllers.V1
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
             var locationUrl = baseUrl + "/" + ApiRoutes.Todos.GetById.Replace("{todoId}", todo.Id.ToString());
 
-            var response = new TodoResponse { Id = todo.Id };
+            var response = _mapper.Map<TodoResponse>(todo);
 
             return Created(locationUrl, response);
         }
