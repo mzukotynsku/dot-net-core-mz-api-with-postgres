@@ -1,0 +1,30 @@
+version: '3.5'
+
+networks:
+  localdev:
+    name: localdev
+volumes:
+    db-data:
+    
+services:
+  main-api:
+    build: DotNetCoreMZ.API/
+    restart: always
+    ports:
+      - "7000:80"
+    depends_on:
+      - db-server
+    networks:
+      - localdev
+        
+  db-server:
+    image: postgres
+    env_file:
+      - database.env
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - 5433:5433
+    networks:
+      - localdev
+   

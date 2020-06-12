@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1 as build
 
 WORKDIR /src
 COPY *.sln .
-COPY Colors.API/*.csproj DotNetCoreMZ.API/
+COPY DotNetCoreMZ.API/*.csproj DotNetCoreMZ.API/
 RUN dotnet restore
 COPY . .
 
