@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 namespace DotNetCoreMZ.API.Controllers.V1
 {
-    
 
+    [Produces("application/json")]
     public class IdentityController : Controller
     {
         private readonly IIdentityService _identityService;
@@ -20,6 +20,12 @@ namespace DotNetCoreMZ.API.Controllers.V1
             _identityService = identityService;
         }
 
+        /// <summary>
+        /// Register a user
+        /// </summary>
+        /// <response code="200">Register a user</response>
+        [ProducesResponseType(typeof(AuthSuccessResponse), 200)]
+        [ProducesResponseType(typeof(AuthFailedResponse), 400)]
         [HttpPost(ApiRoutes.Identity.Register)]
         public async Task<IActionResult> Register([FromBody] UserRegistrationRequest request)
         {
@@ -48,6 +54,12 @@ namespace DotNetCoreMZ.API.Controllers.V1
             });
         }
 
+        /// <summary>
+        /// Login a user
+        /// </summary>
+        /// <response code="200">Login a user</response>
+        [ProducesResponseType(typeof(AuthSuccessResponse), 200)]
+        [ProducesResponseType(typeof(AuthFailedResponse), 400)]
         [HttpPost(ApiRoutes.Identity.Login)]
         public async Task<IActionResult> Login([FromBody] UserLoginRequest request)
         {
@@ -68,6 +80,12 @@ namespace DotNetCoreMZ.API.Controllers.V1
             });
         }
 
+        /// <summary>
+        /// Refresh token
+        /// </summary>
+        /// <response code="200">Login a user</response>
+        [ProducesResponseType(typeof(AuthSuccessResponse), 200)]
+        [ProducesResponseType(typeof(AuthFailedResponse), 400)]
         [HttpPost(ApiRoutes.Identity.Refresh)]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
         {
