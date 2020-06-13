@@ -3,6 +3,7 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1 as build
 WORKDIR /src
 COPY *.sln .
 COPY DotNetCoreMZ.API/*.csproj DotNetCoreMZ.API/
+COPY DotNetCoreMZ.Contracts/*.csproj DotNetCoreMZ.Constracts/
 RUN dotnet restore
 COPY . .
 
