@@ -4,6 +4,7 @@ WORKDIR /src
 COPY *.sln .
 COPY DotNetCoreMZ.API/*.csproj DotNetCoreMZ.API/
 COPY DotNetCoreMZ.Contracts/*.csproj DotNetCoreMZ.Contracts/
+COPY DotNetCoreMZ.Data/*.csproj DotNetCoreMZ.Data/
 RUN dotnet restore
 COPY . .
 
