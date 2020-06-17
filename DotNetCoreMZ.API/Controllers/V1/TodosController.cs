@@ -31,6 +31,7 @@ namespace DotNetCoreMZ.API.Controllers.V1
         /// Returns all the todos
         /// </summary>
         /// <response code="200">Returns all the todos</response>
+        [AllowAnonymous] // fro testing purspose, change it later
         [ProducesResponseType(typeof(List<TodoResponse>),200)]
         [HttpGet(ApiRoutes.Todos.GetAll)]
         public async Task<IActionResult> GetAll()
