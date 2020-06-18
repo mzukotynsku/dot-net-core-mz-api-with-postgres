@@ -1,15 +1,14 @@
-﻿using DotNetCoreMZ.API.Data;
+﻿using AutoMapper;
+using DotNetCoreMZ.API.Data;
 using DotNetCoreMZ.API.Domain;
 using DotNetCoreMZ.API.Options;
+using DotNetCoreMZ.Data.DTO;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.VisualBasic;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,16 +21,19 @@ namespace DotNetCoreMZ.API.Services
         private readonly JwtSettings _jwtSettings;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly DataContext _dataContext;
+        private readonly IMapper _mapper;
 
         public IdentityService(UserManager<IdentityUser> userManager,
             JwtSettings jwtSettings,
             TokenValidationParameters tokenValidationParameters,
-            DataContext dataContext)
+            DataContext dataContext,
+            IMapper mapper)
         {
             _userManager = userManager;
             _jwtSettings = jwtSettings;
             _tokenValidationParameters = tokenValidationParameters;
             _dataContext = dataContext;
+            _mapper = mapper;
         }
 
         public async Task<AuthenticationResult> LoginAsync(string email, string password)
@@ -178,7 +180,9 @@ namespace DotNetCoreMZ.API.Services
                 Token = token.Id
             };
 
-            await _dataContext.RefreshTokens.AddAsync(refreshToken);
+            var refreshTokenDto = _mapper.Map<RefreshTokenDTO>(refreshToken);
+
+            await _dataContext.RefreshTokens.AddAsync(refreshTokenDto);
             await _dataContext.SaveChangesAsync();
 
             return new AuthenticationResult
