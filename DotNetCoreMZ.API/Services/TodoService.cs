@@ -45,7 +45,7 @@ namespace DotNetCoreMZ.API.Services
 
         public async Task<Todo> GetTodoByIdAsync(Guid todoId)
         {
-            return _mapper.Map<Todo>(await _dataContext.Todos.SingleOrDefaultAsync(x => x.Id == todoId));
+            return _mapper.Map<Todo>(await _dataContext.Todos.AsNoTracking().SingleOrDefaultAsync(x => x.Id == todoId));
         }
 
         public async Task<List<Todo>> GetTodosAsync()

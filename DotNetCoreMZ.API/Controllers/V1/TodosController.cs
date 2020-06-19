@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
 using DotNetCoreMZ.API.Contracts.V1;
+using DotNetCoreMZ.API.Contracts.V1.Commands;
+using DotNetCoreMZ.API.Contracts.V1.Queries;
 using DotNetCoreMZ.API.Contracts.V1.Requests;
 using DotNetCoreMZ.API.Contracts.V1.Responses;
 using DotNetCoreMZ.API.Domain;
 using DotNetCoreMZ.API.Extensions;
 using DotNetCoreMZ.API.Services;
+using DotNetCoreMZ.Contracts.V1.Commands;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,13 +22,11 @@ namespace DotNetCoreMZ.API.Controllers.V1
     [Produces("application/json")]
     public class TodosController : Controller
     {
-        private readonly ITodoService _todoService;
-        private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
-        public TodosController(ITodoService todoService, IMapper mapper)
+        public TodosController(IMediator mediator)
         {
-            _todoService = todoService;
-            _mapper = mapper;
+            _mediator = mediator;
         }
 
         /// <summary>
@@ -36,9 +38,11 @@ namespace DotNetCoreMZ.API.Controllers.V1
         [HttpGet(ApiRoutes.Todos.GetAll)]
         public async Task<IActionResult> GetAll()
         {
-            var todos = await _todoService.GetTodosAsync();
+            var query = new GetAllTodosQuery();
 
-            return Ok(_mapper.Map<List<TodoResponse>>(todos));
+            var result = await _mediator.Send(query);
+
+            return Ok(result);        
         }
 
         /// <summary>
@@ -51,12 +55,11 @@ namespace DotNetCoreMZ.API.Controllers.V1
         [HttpGet(ApiRoutes.Todos.GetById)]
         public async Task<IActionResult> GetById([FromRoute] Guid todoId)
         {
-            var todo = await _todoService.GetTodoByIdAsync(todoId);
+            var query = new GetTodoByIdQuery(todoId);
 
-            if (todo == null)
-                return NotFound();
+            var result = await _mediator.Send(query);
 
-            return Ok(_mapper.Map<TodoResponse>(todo));
+            return result != null ? (IActionResult) Ok(result) : NotFound();
         }
 
         /// <summary>
@@ -68,22 +71,20 @@ namespace DotNetCoreMZ.API.Controllers.V1
         [HttpPut(ApiRoutes.Todos.Update)]
         public async Task<IActionResult> Update([FromRoute] Guid todoId, [FromBody] UpdateTodoRequest todoRequest)
         {
-            var userOwnsTodo = await _todoService.UserOwnsTodoAsync(todoId, HttpContext.GetUserId());
-
-            if(!userOwnsTodo)
+            if (!await CheckIfUserOwnsTodo(todoId))
             {
                 return BadRequest(new ErrorResponse { Errors = new List<ErrorModel> { new ErrorModel { Message = "You do not own this todo " } } });
-
             }
 
-            var todo = await _todoService.GetTodoByIdAsync(todoId);
-            todo.Name = todoRequest.Name;
+            var command = new UpdateTodoCommand
+            {
+                TodoId = todoId,
+                Name = todoRequest.Name,
+            };
 
-            var updated = await _todoService.UpdateTodoAsync(todo);
-            if (updated)
-                return NoContent();
+            var result = await _mediator.Send(command);
 
-            return NotFound();
+            return result ? (IActionResult)NoContent() : NotFound();
         }
 
         /// <summary>
@@ -95,19 +96,16 @@ namespace DotNetCoreMZ.API.Controllers.V1
         [HttpDelete(ApiRoutes.Todos.Delete)]
         public async Task<IActionResult> Delete([FromRoute] Guid todoId)
         {
-            var userOwnsTodo = await _todoService.UserOwnsTodoAsync(todoId, HttpContext.GetUserId());
-
-            if (!userOwnsTodo)
+            if (!await CheckIfUserOwnsTodo(todoId))
             {
                 return BadRequest(new ErrorResponse { Errors = new List<ErrorModel> { new ErrorModel { Message = "You do not own this todo " } } });
             }
 
-            var deleted = await _todoService.DeleteTodoAsync(todoId);
+            var command = new DeleteTodoCommand { TodoId = todoId };
 
-            if (deleted)
-                return NoContent();
+            var result = await _mediator.Send(command);
 
-            return NotFound();
+            return result ? (IActionResult)NoContent() : NotFound();
         }
 
         /// <summary>
@@ -118,21 +116,27 @@ namespace DotNetCoreMZ.API.Controllers.V1
         [ProducesResponseType(typeof(TodoResponse),201)]
         public async Task<IActionResult> Create([FromBody] CreateTodoRequest todoRequest)
         {
-
-            var todo = new Todo
+            var command = new CreateTodoCommand
             {
+                TodoId = Guid.NewGuid(),
                 Name = todoRequest.Name,
                 UserId = HttpContext.GetUserId()
             };
 
-            await _todoService.CreateTodoAsync(todo);
+            var result = await _mediator.Send(command);
 
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
-            var locationUrl = baseUrl + "/" + ApiRoutes.Todos.GetById.Replace("{todoId}", todo.Id.ToString());
+            var locationUrl = baseUrl + "/" + ApiRoutes.Todos.GetById.Replace("{todoId}", result.Id.ToString());
 
-            var response = _mapper.Map<TodoResponse>(todo);
+            return Created(locationUrl, result);
+        }
 
-            return Created(locationUrl, response);
+        private async Task<bool> CheckIfUserOwnsTodo(Guid todoId)
+        {
+            var userOwnsTodoCommand = new UserOwnsTodoCommand { TodoId = todoId, UserId = HttpContext.GetUserId() };
+
+            var userOnwsTodoResult = await _mediator.Send(userOwnsTodoCommand);
+            return userOnwsTodoResult;
         }
     }
 }

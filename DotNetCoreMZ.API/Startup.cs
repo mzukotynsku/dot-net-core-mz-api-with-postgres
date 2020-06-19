@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using DotNetCoreMZ.API.Installers;
 using DotNetCoreMZ.API.Options;
 using AutoMapper;
+using MediatR;
 
 namespace DotNetCoreMZ.API
 {
@@ -33,6 +34,7 @@ namespace DotNetCoreMZ.API
             services.InstallServicesInAssembly(Configuration);
             services.AddControllersWithViews();
             services.AddAutoMapper(typeof(Startup));
+            services.AddMediatR(typeof(Startup));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
