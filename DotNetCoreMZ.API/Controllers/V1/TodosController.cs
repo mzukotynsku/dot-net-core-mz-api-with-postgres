@@ -23,10 +23,12 @@ namespace DotNetCoreMZ.API.Controllers.V1
     public class TodosController : Controller
     {
         private readonly IMediator _mediator;
+        private readonly IUriService _uriService;
 
-        public TodosController(IMediator mediator)
+        public TodosController(IMediator mediator, IUriService uriService)
         {
             _mediator = mediator;
+            _uriService = uriService;
         }
 
         /// <summary>
@@ -125,8 +127,7 @@ namespace DotNetCoreMZ.API.Controllers.V1
 
             var result = await _mediator.Send(command);
 
-            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
-            var locationUrl = baseUrl + "/" + ApiRoutes.Todos.GetById.Replace("{todoId}", result.Id.ToString());
+            var locationUrl = _uriService.GetTodoUri(result.Id.ToString());
 
             return Created(locationUrl, result);
         }

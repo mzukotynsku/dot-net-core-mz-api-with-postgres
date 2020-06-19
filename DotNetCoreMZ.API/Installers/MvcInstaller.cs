@@ -3,6 +3,7 @@ using DotNetCoreMZ.API.Options;
 using DotNetCoreMZ.API.Services;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -60,7 +61,13 @@ namespace DotNetCoreMZ.API.Installers
                 x.TokenValidationParameters = tokenValidationParameters;
             });
 
-            
+            services.AddSingleton<IUriService>(provider =>
+            {
+                var access = provider.GetRequiredService<IHttpContextAccessor>();
+                var request = access.HttpContext.Request;
+                var absoluteUri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent(), "/");
+                return new UriService(absoluteUri);
+            });
         }
     }
 }
