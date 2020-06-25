@@ -154,8 +154,9 @@ namespace DotNetCoreMZ.API.Services
 
         private async Task<AuthenticationResult> GenerateAuthenticationResultForUser(IdentityUser user)
         {
+            var envJwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+            var key = Encoding.ASCII.GetBytes(envJwtSecret);
             var tokenDescription = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
