@@ -23,7 +23,8 @@ namespace DotNetCoreMZ.API.Installers
     {
         public void InstallServices(IConfiguration configuration, IServiceCollection services)
         {
-            var jwtSettings = new JwtSettings();
+            var envJwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+            var jwtSettings = new JwtSettings();           
             configuration.Bind(nameof(jwtSettings), jwtSettings);
             services.AddSingleton(jwtSettings);
 
@@ -40,7 +41,7 @@ namespace DotNetCoreMZ.API.Installers
             var tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(envJwtSecret)),
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 RequireExpirationTime = false,
