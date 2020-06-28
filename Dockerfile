@@ -5,8 +5,16 @@ COPY *.sln .
 COPY DotNetCoreMZ.API/*.csproj DotNetCoreMZ.API/
 COPY DotNetCoreMZ.Contracts/*.csproj DotNetCoreMZ.Contracts/
 COPY DotNetCoreMZ.Data/*.csproj DotNetCoreMZ.Data/
+COPY DotNetCoreMZ.UnitTests/*.csproj DotNetCoreMZ.UnitTests/
 RUN dotnet restore
 COPY . .
+
+# testing
+FROM build As testing
+WORKDIR /src/DotNetCoreMZ.API
+RUN dotnet build
+WORKDIR /src/DotNetCoreMZ.UnitTests
+RUN dotnet test
 
 # publish
 FROM build AS publish
