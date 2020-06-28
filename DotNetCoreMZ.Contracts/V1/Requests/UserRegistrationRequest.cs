@@ -6,6 +6,7 @@ namespace DotNetCoreMZ.API.Contracts.V1.Requests
     {
         [EmailAddress]
         public string Email { get; set; }
+        [Required]
         public string Password { get; set; }
     }
 }
